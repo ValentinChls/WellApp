@@ -5,8 +5,10 @@
 // =====================================================================
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../../src/generated/engagement"
+  provider      = "prisma-client-js"
+  output        = "../../src/generated/engagement"
+  // `native` = dev local ; `rhel-openssl-3.0.x` = runtime serverless Vercel.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
