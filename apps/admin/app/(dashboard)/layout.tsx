@@ -3,6 +3,7 @@ import { engagementDb } from '@wellpharma/db'
 import { getServerSupabase } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { SidebarNav, type StaffRole } from '@/components/sidebar-nav'
+import { CommandPalette } from '@/components/command-palette'
 import { signOut } from './actions'
 
 /** Rôles applicatifs (alignés sur @wellpharma/api). */
@@ -108,6 +109,8 @@ export default async function DashboardLayout({
 
         <main className="flex-1 p-6">{children}</main>
       </div>
+
+      <CommandPalette role={role as 'SUPER_ADMIN_GROUPEMENT' | 'ADMIN_PHARMACIE'} />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, Check, Clock, Pencil, Type, Users, Volume2, X } from 'lucide-react'
+import { ArrowLeft, Check, Clock, HeartPulse, Pencil, Type, Users, Volume2, X } from 'lucide-react'
 import {
   answeredCount,
   isAnswered,
@@ -259,10 +259,21 @@ export function MissionRunPage() {
           </motion.span>
           <h1>{template.doneTitle}</h1>
           <p className="mission-intro-pitch">{template.doneBody}</p>
+          <motion.span
+            className="mission-done-reward"
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <HeartPulse size={16} aria-hidden="true" /> +1 action sur votre parcours santé
+          </motion.span>
           <LigneDeVieAnimee width={170} loop={false} />
         </div>
-        <footer className="mission-run-foot">
+        <footer className="mission-run-foot mission-done-foot">
           <button className="btn btn-lg" onClick={() => navigate('/missions')}>Terminé</button>
+          <button className="btn btn-outline" onClick={() => navigate('/ma-sante')}>
+            Voir ma santé
+          </button>
         </footer>
       </div>
     )

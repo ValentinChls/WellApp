@@ -5,6 +5,7 @@ import {
   ChevronRight,
   ClipboardList,
   CreditCard,
+  HeartPulse,
   MessageCircle,
   Search,
   ShieldPlus,
@@ -73,6 +74,19 @@ export function HomePage() {
       </header>
 
       {banners.data && banners.data.length > 0 ? <HomeCarousel banners={banners.data} /> : null}
+
+      <Reveal delay={0.01}>
+        <button className="sante-cta" onClick={() => navigate('/ma-sante')}>
+          <span className="sante-cta-ico">
+            <HeartPulse aria-hidden="true" />
+          </span>
+          <span className="grow">
+            <span className="t">Ma santé</span>
+            <span className="d">Suivez votre parcours de prévention</span>
+          </span>
+          <ChevronRight className="chev" aria-hidden="true" />
+        </button>
+      </Reveal>
 
       {reference.data ? (
         <button

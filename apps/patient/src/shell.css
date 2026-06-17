@@ -1254,6 +1254,206 @@
   width: 18px;
   background: var(--wp-primary);
 }
+/* CTA « Ma santé » (accueil) */
+.sante-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, var(--wp-primary), var(--wp-accent, #37bac9));
+  box-shadow: 0 10px 26px rgba(0, 157, 197, 0.25);
+}
+.sante-cta .grow {
+  min-width: 0;
+  text-align: left;
+}
+.sante-cta .t {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+}
+.sante-cta .d {
+  display: block;
+  font-size: 13px;
+  opacity: 0.92;
+}
+.sante-cta-ico {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.sante-cta-ico svg {
+  width: 22px;
+  height: 22px;
+}
+.sante-cta .chev {
+  color: rgba(255, 255, 255, 0.9);
+}
+/* Écran « Ma santé » */
+.sante-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(0, 157, 197, 0.1), rgba(55, 186, 201, 0.06));
+  border: 1px solid var(--wp-border, rgba(20, 30, 60, 0.07));
+}
+.sante-ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+}
+.sante-ring-bg {
+  fill: none;
+  stroke: rgba(20, 30, 60, 0.08);
+  stroke-width: 10;
+}
+.sante-ring-fill {
+  fill: none;
+  stroke: var(--wp-primary);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sante-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.sante-ring-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--wp-navy);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.sante-ring-cap {
+  font-size: 12px;
+  color: var(--wp-muted);
+}
+.sante-hero-text {
+  min-width: 0;
+}
+.sante-hero-text p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--wp-navy);
+}
+.sante-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wp-primary);
+}
+.sante-timeline {
+  margin-top: 18px;
+}
+.sante-node {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 14px;
+}
+.sante-node-line {
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  bottom: -4px;
+  width: 2px;
+  background: rgba(20, 30, 60, 0.1);
+}
+.sante-node:last-child .sante-node-line {
+  display: none;
+}
+.sante-node-dot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: #fff;
+}
+.sante-node-dot svg {
+  width: 20px;
+  height: 20px;
+}
+.sante-node-card {
+  flex: 1;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.sante-node-card .t {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--wp-navy);
+}
+.sante-node-card .d {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--wp-muted);
+}
+.sante-node-next .sante-node-dot {
+  animation: santePulse 2s ease-in-out infinite;
+}
+@keyframes santePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(0, 157, 197, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 157, 197, 0.04);
+  }
+}
+.sante-node-done .sante-node-card .t {
+  color: var(--wp-muted);
+}
+/* Récompense de complétion de mission */
+.mission-done-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px auto 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(0, 157, 197, 0.1);
+  color: var(--wp-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.mission-done-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .mission-cta {
   display: inline-flex;
   align-items: center;

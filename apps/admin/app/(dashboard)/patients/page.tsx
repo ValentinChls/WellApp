@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Users, X } from 'lucide-react'
 import { cn } from '@wellpharma/ui/cn'
 import { api } from '@/lib/trpc/react'
@@ -84,6 +84,11 @@ function PatientDetail({ patientId, onClose }: { patientId: string; onClose: () 
 export default function PatientsPage() {
   const [q, setQ] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
+  // Pré-remplissage depuis la palette de commandes (/patients?q=Nom).
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('q')
+    if (param) setQ(param)
+  }, [])
   const list = api.patients.list.useQuery(q.trim() ? { q: q.trim() } : undefined)
 
   return (

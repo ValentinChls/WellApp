@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ClipboardCheck,
   MessageSquare,
+  Search,
 } from 'lucide-react'
 import { api } from '@/lib/trpc/react'
 import { Card } from '@/components/ui/card'
@@ -70,9 +71,19 @@ export function CockpitClient() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="font-display text-2xl font-bold text-foreground">Mon comptoir</h1>
-        <p className="text-sm text-muted-foreground">{todayLabel()}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="font-display text-2xl font-bold text-foreground">Mon comptoir</h1>
+          <p className="text-sm text-muted-foreground">{todayLabel()}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+          className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary"
+        >
+          <Search className="h-3.5 w-3.5" /> Rechercher ou agir
+          <span className="rounded border px-1.5 py-0.5 text-[11px]">Ctrl K</span>
+        </button>
       </div>
 
       {q.isLoading ? (

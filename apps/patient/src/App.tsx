@@ -18,6 +18,7 @@ import { ProfilPage } from './pages/ProfilPage'
 import { MissionsPage } from './pages/MissionsPage'
 import { MissionRunPage } from './pages/MissionRunPage'
 import { FidelitePage } from './pages/FidelitePage'
+import { MaSantePage } from './pages/MaSantePage'
 
 export function App() {
   const { session, loading } = useAuth()
@@ -43,6 +44,7 @@ export function App() {
         <Route path="/soins" element={<SoinsPage />} />
         <Route path="/missions" element={<MissionsPage />} />
         <Route path="/fidelite" element={<FidelitePage />} />
+        <Route path="/ma-sante" element={<MaSantePage />} />
         <Route path="/conseil" element={<ConseilPage />} />
         <Route path="/rendez-vous" element={<RendezVousPage />} />
         <Route path="/entretiens" element={<EntretiensPage />} />
