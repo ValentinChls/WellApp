@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Database,
   FileText,
+  GalleryHorizontalEnd,
   LayoutDashboard,
   Megaphone,
   MessageSquare,
@@ -26,6 +27,7 @@ const NAV = {
   SUPER_ADMIN_GROUPEMENT: [
     { label: 'Tableau de bord', href: '/', icon: LayoutDashboard },
     { label: 'Missions', href: '/missions', icon: ClipboardList },
+    { label: 'Accueil app', href: '/accueil-app', icon: GalleryHorizontalEnd },
     { label: 'Groupement', href: '/groupement', icon: Building2 },
     { label: 'Pharmacies', href: '/pharmacies', icon: Store },
     { label: 'Campagnes', href: '/campagnes', icon: Megaphone },

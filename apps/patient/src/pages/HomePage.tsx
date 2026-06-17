@@ -18,6 +18,8 @@ import { listAffiliations, getPharmacy } from '../data/pharmacyService'
 import { listCareEvents } from '../data/careEventService'
 import { listMissions } from '../data/missionService'
 import { getLoyalty } from '../data/loyaltyService'
+import { getHomeBanners } from '../data/homeService'
+import { HomeCarousel } from '../components/HomeCarousel'
 
 const TILES = [
   { to: '/conseil', Icon: MessageCircle, label: 'Conseil' },
@@ -54,6 +56,7 @@ export function HomePage() {
   const missionsTodo = (missions.data ?? []).filter((m) => PATIENT_ACTIONABLE.includes(m.state)).length
 
   const loyalty = useQuery({ queryKey: ['loyalty'], queryFn: getLoyalty })
+  const banners = useQuery({ queryKey: ['home-banners'], queryFn: getHomeBanners })
 
   const events = useQuery({ queryKey: ['care-events'], queryFn: listCareEvents })
   const month = new Date().getMonth() + 1
@@ -68,6 +71,8 @@ export function HomePage() {
         <h1>Bonjour</h1>
         <span className="eyebrow">{todayLabel()}</span>
       </header>
+
+      {banners.data && banners.data.length > 0 ? <HomeCarousel banners={banners.data} /> : null}
 
       {reference.data ? (
         <button

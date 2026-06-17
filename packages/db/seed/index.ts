@@ -322,6 +322,38 @@ async function main() {
     }
   }
 
+  // 7) Carrousel d'accueil app patient (bannières pilotées par le groupement)
+  const bannerCount = await engagementDb.homeBanner.count()
+  if (bannerCount === 0) {
+    const gradient = (c1: string, c2: string) =>
+      'data:image/svg+xml,' +
+      encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='675'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs><rect width='1200' height='675' fill='url(#g)'/></svg>`,
+      )
+    await engagementDb.homeBanner.createMany({
+      data: [
+        {
+          groupementId: groupement.id,
+          title: 'Faire équipe pour votre santé',
+          subtitle: 'Vaccination, entretiens, prévention : votre pharmacien vous accompagne.',
+          imageDataUrl: gradient('#009dc5', '#1d243f'),
+          linkUrl: '/prevention',
+          sortOrder: 1,
+          active: true,
+        },
+        {
+          groupementId: groupement.id,
+          title: 'Votre programme de fidélité',
+          subtitle: 'Cumulez des points à chaque visite et profitez d’avantages.',
+          imageDataUrl: gradient('#2bad70', '#009dc5'),
+          linkUrl: '/fidelite',
+          sortOrder: 2,
+          active: true,
+        },
+      ],
+    })
+  }
+
   console.log(
     `✅ Seed terminé : 1 groupement, ${pharmacies.length} pharmacies, 3 comptes démo, ${events.length} campagnes marronnier, ${ACTIVE_MISSIONS.length} missions activées.`,
   )

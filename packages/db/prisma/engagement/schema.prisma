@@ -500,3 +500,19 @@ model LoyaltyTransaction {
 
   @@index([accountId])
 }
+
+// ─────────────────────────────── Carrousel d'accueil app patient (piloté groupement)
+model HomeBanner {
+  id           String   @id @default(uuid())
+  groupementId String
+  title        String
+  subtitle     String?
+  imageDataUrl String   @db.Text // image recadrée « cover » (data URL JPEG), format 1200×675
+  linkUrl      String?
+  sortOrder    Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([groupementId, active, sortOrder])
+}
