@@ -462,6 +462,7 @@ function Inbox() {
   const utils = api.useUtils()
   const inbox = api.missions.inbox.useQuery({})
   const relance = api.missions.relance.useMutation({ onSuccess: () => utils.missions.inbox.invalidate() })
+  const relanceBatch = api.missions.relanceBatch.useMutation({ onSuccess: () => utils.missions.inbox.invalidate() })
   const items = inbox.data?.items ?? []
   const counts = inbox.data?.counts ?? { aValider: 0, enCours: 0, validees: 0 }
 
@@ -554,7 +555,20 @@ function Inbox() {
           ) : null}
           {enCours.length > 0 ? (
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold text-foreground">En cours</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">En cours</h2>
+                {enCours.length > 1 ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={relanceBatch.isPending}
+                    onClick={() => relanceBatch.mutate({ ids: enCours.map((i) => i.id) })}
+                  >
+                    <BellRing className="mr-1 h-3.5 w-3.5" />
+                    {relanceBatch.isPending ? 'Envoi…' : `Relancer les ${enCours.length}`}
+                  </Button>
+                ) : null}
+              </div>
               {enCours.map((i) => (
                 <Row key={i.id} i={i} />
               ))}

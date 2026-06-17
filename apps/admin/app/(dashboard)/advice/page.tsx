@@ -1,11 +1,22 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Inbox, ChevronRight } from 'lucide-react'
 import { adviceStatusLabel } from '@wellpharma/shared'
 import { cn } from '@wellpharma/ui/cn'
 import { api } from '@/lib/trpc/react'
 import { Card } from '@/components/ui/card'
+import { ListToolbar } from '@/components/ui/list-toolbar'
+import { RetryState } from '@/components/ui/retry-state'
+
+const STATUS_FILTERS = [
+  { value: 'all', label: 'Tous les statuts' },
+  { value: 'OPEN', label: adviceStatusLabel('OPEN') },
+  { value: 'IN_PROGRESS', label: adviceStatusLabel('IN_PROGRESS') },
+  { value: 'ANSWERED', label: adviceStatusLabel('ANSWERED') },
+  { value: 'CLOSED', label: adviceStatusLabel('CLOSED') },
+]
 
 /** Formate une date au format français (jour mois année). */
 function formatDateFr(value: Date | string): string {
@@ -45,8 +56,19 @@ function StatusBadge({ status }: { status: string }) {
  * affiché en liste (réservé à la page détail authentifiée).
  */
 export default function AdviceInboxPage() {
-  const { data, isLoading, isError } =
+  const { data, isLoading, isError, refetch } =
     api.health.adviceRequests.listForPharmacy.useQuery()
+  const [q, setQ] = useState('')
+  const [status, setStatus] = useState('all')
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    return (data ?? []).filter(
+      (r) =>
+        (status === 'all' || r.status === status) &&
+        (needle === '' || r.subject.toLowerCase().includes(needle)),
+    )
+  }, [data, q, status])
 
   return (
     <div className="space-y-6">
@@ -59,6 +81,17 @@ export default function AdviceInboxPage() {
         </p>
       </div>
 
+      {!isLoading && !isError && data && data.length > 0 ? (
+        <ListToolbar
+          query={q}
+          onQuery={setQ}
+          placeholder="Rechercher par objet…"
+          filterValue={status}
+          filterOptions={STATUS_FILTERS}
+          onFilter={setStatus}
+        />
+      ) : null}
+
       {isLoading && (
         <ul className="space-y-3" aria-hidden="true">
           {[0, 1, 2].map((i) => (
@@ -70,11 +103,7 @@ export default function AdviceInboxPage() {
       )}
 
       {isError && !isLoading && (
-        <Card className="p-6">
-          <p className="text-sm text-destructive">
-            Le chargement des demandes a échoué. Merci de réessayer.
-          </p>
-        </Card>
+        <RetryState message="Le chargement des demandes a échoué." onRetry={() => void refetch()} />
       )}
 
       {!isLoading && !isError && data && data.length === 0 && (
@@ -94,9 +123,15 @@ export default function AdviceInboxPage() {
         </Card>
       )}
 
-      {!isLoading && !isError && data && data.length > 0 && (
+      {!isLoading && !isError && data && data.length > 0 && filtered.length === 0 && (
+        <Card className="p-6 text-center">
+          <p className="text-sm text-muted-foreground">Aucune demande ne correspond à votre recherche.</p>
+        </Card>
+      )}
+
+      {!isLoading && !isError && filtered.length > 0 && (
         <ul className="space-y-3">
-          {data.map((request) => (
+          {filtered.map((request) => (
             <li key={request.id}>
               <Link
                 href={`/advice/${request.id}`}

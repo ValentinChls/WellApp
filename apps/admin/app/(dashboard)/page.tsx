@@ -1,6 +1,7 @@
 import { engagementDb } from '@wellpharma/db'
 import { getServerSupabase } from '@/lib/supabase/server'
 import { DashboardClient } from './dashboard-client'
+import { CockpitClient } from './cockpit-client'
 
 type StaffRole = 'SUPER_ADMIN_GROUPEMENT' | 'ADMIN_PHARMACIE'
 
@@ -28,5 +29,7 @@ export default async function DashboardPage() {
     }
   }
 
+  // Pharmacien → cockpit « Aujourd'hui » (orienté action). Groupement → pilotage.
+  if (role === 'ADMIN_PHARMACIE') return <CockpitClient />
   return <DashboardClient role={role} />
 }

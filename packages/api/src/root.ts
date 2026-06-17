@@ -18,6 +18,7 @@ import { gamificationRouter } from './routers/gamification'
 import { missionsRouter } from './routers/missions'
 import { loyaltyRouter } from './routers/loyalty'
 import { homeRouter } from './routers/home'
+import { cockpitRouter } from './routers/cockpit'
 
 export const appRouter = router({
   auth: authRouter,
@@ -39,6 +40,7 @@ export const appRouter = router({
   missions: missionsRouter,
   loyalty: loyaltyRouter,
   home: homeRouter,
+  cockpit: cockpitRouter,
 })
 
 export type AppRouter = typeof appRouter

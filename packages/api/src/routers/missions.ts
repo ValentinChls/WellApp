@@ -354,6 +354,41 @@ export const missionsRouter = router({
     return { ok: true }
   }),
 
+  /** Relance EN LOT : relance plusieurs affectations d'un coup (cockpit). */
+  relanceBatch: pharmacyProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).min(1).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      const scoped = await resolveScopedPharmacyIds(ctx.user)
+      const assignments = await engagementDb.missionAssignment.findMany({
+        where: { id: { in: input.ids }, pharmacyId: { in: scoped } },
+        select: { id: true, patientId: true, pharmacyId: true },
+      })
+      if (assignments.length === 0) return { relanced: 0 }
+      await engagementDb.missionAssignment.updateMany({
+        where: { id: { in: assignments.map((a) => a.id) } },
+        data: { relanceCount: { increment: 1 } },
+      })
+      const patientIds = [...new Set(assignments.map((a) => a.patientId))]
+      const users = await engagementDb.user.findMany({
+        where: { patientId: { in: patientIds } },
+        select: { id: true },
+      })
+      await Promise.all(
+        users.map((u) =>
+          notifyUser({
+            userId: u.id,
+            kind: 'mission_relance',
+            title: 'Un rappel de votre pharmacien',
+            body: 'Votre pharmacien vous invite à compléter votre mission quand vous le pourrez.',
+          }).catch(() => undefined),
+        ),
+      )
+      await engagementDb.kpiEvent.createMany({
+        data: assignments.map((a) => ({ name: 'mission_relance', pharmacyId: a.pharmacyId })),
+      })
+      return { relanced: assignments.length }
+    }),
+
   /**
    * Éligibles : moteur de ciblage. Patients référence SANS affectation active,
    * évalués contre la règle machine de la mission (âge/sexe — données engagement,
