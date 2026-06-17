@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { engagementDb } from '@wellpharma/db'
-import { router, patientProcedure, groupementProcedure } from '../trpc'
+import { router, publicProcedure, groupementProcedure } from '../trpc'
 
 /**
  * Carrousel d'accueil de l'app patient — contenu piloté par le groupement.
@@ -28,8 +28,9 @@ async function groupementId(): Promise<string> {
 }
 
 export const homeRouter = router({
-  // ── Patient : bannières actives (carrousel)
-  list: patientProcedure.query(async () => {
+  // ── Public : bannières actives (carrousel). Contenu marketing non sensible,
+  //    lisible sans authentification (l'app patient l'affiche même en mode démo).
+  list: publicProcedure.query(async () => {
     const banners = await engagementDb.homeBanner.findMany({
       where: { active: true },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],

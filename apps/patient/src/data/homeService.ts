@@ -2,7 +2,6 @@
  * Carrousel d'accueil — bannières pilotées par le groupement.
  * Mode démo : bannières locales. Mode réel : tRPC `home.list`.
  */
-import { isDemoEnabled } from '../lib/demo'
 import { trpc } from '../lib/trpcVanilla'
 
 export interface HomeBanner {
@@ -37,6 +36,15 @@ const DEMO_BANNERS: HomeBanner[] = [
 ]
 
 export async function getHomeBanners(): Promise<HomeBanner[]> {
-  if (isDemoEnabled()) return DEMO_BANNERS
-  return (await trpc.home.list.query()) as HomeBanner[]
+  // Le carrousel est du contenu marketing LIVE piloté par le groupement : on
+  // tente TOUJOURS l'API (même en mode démo), pour que les bannières créées
+  // dans le back-office apparaissent. Repli sur les exemples si l'API est
+  // injoignable (VITE_API_URL absent, hors-ligne, CORS).
+  try {
+    const live = (await trpc.home.list.query()) as HomeBanner[]
+    if (live && live.length > 0) return live
+  } catch {
+    // ignore → repli sur les bannières de démonstration
+  }
+  return DEMO_BANNERS
 }

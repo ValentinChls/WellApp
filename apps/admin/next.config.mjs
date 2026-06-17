@@ -30,8 +30,13 @@ const nextConfig = {
   ...(onVercel ? { outputFileTracingRoot: monorepoRoot } : {}),
   // Copie le moteur de requêtes Prisma au bon endroit du bundle serveur
   // (indispensable en monorepo : le client est empaqueté par webpack).
-  webpack: (/** @type {any} */ config, /** @type {{ isServer: boolean }} */ { isServer }) => {
-    if (isServer) {
+  // UNIQUEMENT au build de production : en dev (Windows), la copie du moteur
+  // rhel déclenche un EBUSY (fichier .so verrouillé) qui casse /api/trpc.
+  webpack: (
+    /** @type {any} */ config,
+    /** @type {{ isServer: boolean, dev: boolean }} */ { isServer, dev },
+  ) => {
+    if (isServer && !dev) {
       config.plugins = [...config.plugins, new PrismaPlugin()]
     }
     return config
