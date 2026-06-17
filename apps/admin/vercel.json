@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@wellpharma/admin"
+  "buildCommand": "cd ../.. && pnpm --filter @wellpharma/db run db:generate && pnpm turbo run build --filter=@wellpharma/admin --force"
 }
