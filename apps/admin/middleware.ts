@@ -73,7 +73,10 @@ export const config = {
      * - _next/static, _next/image (assets build)
      * - favicon.ico
      * - /api/trpc (endpoint tRPC, géré par son propre contexte)
+     * - tout fichier statique (extension) : sinon le middleware intercepte les
+     *   assets du dossier /public (ex. /brand/logo-badge.png) et redirige vers
+     *   /login → l'image revient en HTML et s'affiche cassée sur la page login.
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/trpc).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/trpc|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|pdf|txt|webmanifest|woff|woff2|ttf|eot)).*)',
   ],
 }
