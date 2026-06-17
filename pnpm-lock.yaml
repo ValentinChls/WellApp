@@ -26,6 +26,9 @@ importers:
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@prisma/nextjs-monorepo-workaround-plugin':
+        specifier: ^7.8.0
+        version: 7.8.0
       '@supabase/ssr':
         specifier: ^0.5.2
         version: 0.5.2(@supabase/supabase-js@2.108.1)
@@ -1680,6 +1683,9 @@ packages:
 
   '@prisma/get-platform@6.19.3':
     resolution: {integrity: sha512-xFj1VcJ1N3MKooOQAGO0W5tsd0W2QzIvW7DD7c/8H14Zmp4jseeWAITm+w2LLoLrlhoHdPPh0NMZ8mfL6puoHA==}
+
+  '@prisma/nextjs-monorepo-workaround-plugin@7.8.0':
+    resolution: {integrity: sha512-9KR2LKoyh0fXjLCUQSU/QAq2XD0xlKb66iQDhaaC9eMhBaPNB02f4RHPlMtOuei2z5sxoKRx5+d8Hs0julQh2g==}
 
   '@react-leaflet/core@2.1.0':
     resolution: {integrity: sha512-Qk7Pfu8BSarKGqILj4x7bCSZ1pjuAPZ+qmRwH5S7mDS91VSbVVsJSrW4qA+GPrro8t69gFYVMWb1Zc4yFmPiVg==}
@@ -5990,6 +5996,8 @@ snapshots:
   '@prisma/get-platform@6.19.3':
     dependencies:
       '@prisma/debug': 6.19.3
+
+  '@prisma/nextjs-monorepo-workaround-plugin@7.8.0': {}
 
   '@react-leaflet/core@2.1.0(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:

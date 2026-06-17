@@ -1,5 +1,8 @@
 // @ts-check
 import { fileURLToPath } from 'node:url'
+// eslint-disable-next-line
+// @ts-ignore — le plugin ne fournit pas de déclarations TypeScript.
+import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin'
 
 /**
  * Configuration Next.js de l'app d'administration Wellpharma.
@@ -25,6 +28,14 @@ const nextConfig = {
     '/**': ['../../packages/db/src/generated/**'],
   },
   ...(onVercel ? { outputFileTracingRoot: monorepoRoot } : {}),
+  // Copie le moteur de requêtes Prisma au bon endroit du bundle serveur
+  // (indispensable en monorepo : le client est empaqueté par webpack).
+  webpack: (/** @type {any} */ config, /** @type {{ isServer: boolean }} */ { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()]
+    }
+    return config
+  },
 }
 
 export default nextConfig
