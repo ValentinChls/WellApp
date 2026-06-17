@@ -1,0 +1,978 @@
+/* Styles de base PWA patient. Les couleurs reflètent les tokens @wellpharma/ui
+   (charte Wellpharma — primaire #009dc5, navy texte #1d243f). */
+:root {
+  --wp-primary: #009dc5;
+  --wp-primary-600: #007e9e;
+  --wp-primary-050: #e8f6fa;
+  --wp-navy: #1d243f;
+  --wp-accent: #37bac9;
+  --wp-success: #2bad70;
+  --wp-danger: #d8542f;
+  --wp-bg: #f4fbfc;
+  --wp-card: #ffffff;
+  --wp-surface: #eef7fa;
+  --wp-muted: #5b6472;
+  --wp-border: #e6eef2;
+  --wp-radius: 20px;
+  --wp-radius-sm: 14px;
+  --wp-radius-lg: 26px;
+  --wp-shadow: 0 6px 20px rgba(16, 62, 80, 0.06);
+  --wp-shadow-lg: 0 12px 32px rgba(16, 62, 80, 0.13);
+  --wp-nav-h: 64px;
+  --wp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --wp-dur: 220ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Questrial', 'Century Gothic', 'Avant Garde', system-ui, sans-serif;
+  background: var(--wp-bg);
+  color: var(--wp-navy);
+  -webkit-font-smoothing: antialiased;
+}
+
+.splash {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--wp-muted);
+}
+
+.screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 28px;
+  color: var(--wp-primary);
+  letter-spacing: 0.5px;
+}
+
+.slogan {
+  margin: 0;
+  font-size: 14px;
+  color: var(--wp-muted);
+}
+
+.card {
+  background: var(--wp-card);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--wp-radius);
+  padding: 20px;
+  box-shadow: var(--wp-shadow);
+}
+
+.card h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.muted {
+  color: var(--wp-muted);
+  font-size: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input {
+  height: 44px;
+  border: 1px solid var(--wp-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 15px;
+  background: #fff;
+  color: var(--wp-navy);
+}
+
+.input:focus {
+  outline: 2px solid var(--wp-primary);
+  outline-offset: 1px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--wp-radius-sm);
+  background: var(--wp-primary);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background var(--wp-dur) var(--wp-ease), transform 120ms var(--wp-ease);
+}
+
+.btn:hover {
+  background: var(--wp-primary-600);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--wp-primary);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--wp-primary);
+  border: 1px solid var(--wp-primary);
+}
+
+.btn-outline:hover {
+  background: var(--wp-bg);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 157, 197, 0.12);
+  color: var(--wp-primary-600);
+}
+
+/* ─── Phase 3 — entretien ─── */
+.itw-section-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--wp-primary-600);
+}
+.itw-answer {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-border);
+  font-size: 15px;
+  min-height: 20px;
+}
+.itw-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.itw-check,
+.itw-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+/* ─── Phase 4 — calendrier ─── */
+.cal-toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--wp-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cal-toggle button {
+  border: 0;
+  background: #fff;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--wp-muted);
+  cursor: pointer;
+}
+.cal-toggle button.is-active {
+  background: var(--wp-primary);
+  color: #fff;
+}
+.chip-filter {
+  cursor: pointer;
+}
+.chip-filter.is-active {
+  background: var(--wp-primary);
+  color: #fff;
+  border-color: var(--wp-primary);
+}
+.chip-vacc {
+  background: rgba(0, 157, 197, 0.16);
+  color: var(--wp-primary-600);
+  border-color: transparent;
+  font-weight: 600;
+}
+.cal-month-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--wp-primary-600);
+}
+.event-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--wp-card);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--wp-radius);
+  padding: 14px;
+}
+.event-card.is-vaccination {
+  border-left: 4px solid var(--wp-primary);
+}
+.event-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bell {
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bell:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ─── Phase 5 — chatbot non-santé ─── */
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+.bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  line-height: 1.4;
+}
+.bubble p {
+  margin: 0;
+}
+.bubble-bot {
+  align-self: flex-start;
+  background: var(--wp-card);
+  border: 1px solid var(--wp-border);
+  border-bottom-left-radius: 4px;
+}
+.bubble-user {
+  align-self: flex-end;
+  background: var(--wp-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.bubble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chat-input {
+  display: flex;
+  gap: 8px;
+}
+.chat-input input {
+  flex: 1;
+  padding: 12px 14px;
+  font: inherit;
+  border: 1px solid var(--wp-border);
+  border-radius: 12px;
+  background: var(--wp-card);
+}
+.chat-disclaimer {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--wp-muted);
+  text-align: center;
+}
+
+/* ─── Phase 7 — gamification & prévention ─── */
+.points-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.points-big {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--wp-primary);
+  line-height: 1;
+}
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 157, 197, 0.12);
+  color: var(--wp-primary-600);
+  font-size: 14px;
+  font-weight: 600;
+}
+.badge-locked {
+  background: var(--wp-bg);
+  color: var(--wp-muted);
+  opacity: 0.6;
+}
+.quiz-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.quiz-score {
+  margin: 0;
+  font-size: 22px;
+  color: var(--wp-primary);
+}
+.quiz-review {
+  border-top: 1px solid var(--wp-border);
+  padding-top: 10px;
+}
+.quiz-ok {
+  color: var(--wp-primary-600);
+  margin: 4px 0 0;
+}
+.quiz-ko {
+  color: #b4521f;
+  margin: 4px 0 0;
+}
+.leader-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--wp-border);
+}
+.leader-row:last-child {
+  border-bottom: 0;
+}
+.leader-row.is-me {
+  font-weight: 700;
+  color: var(--wp-primary);
+}
+.leader-pts {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Phase 1 — recherche & fiche pharmacie ─── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.page-title {
+  margin: 0;
+  font-size: 20px;
+}
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--wp-primary-600);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.searchbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.searchbar .input {
+  flex: 1;
+}
+.searchbar .btn {
+  width: auto;
+  white-space: nowrap;
+  padding: 0 12px;
+  height: 44px;
+}
+.wp-map {
+  height: 280px;
+  border-radius: var(--wp-radius);
+  overflow: hidden;
+  border: 1px solid var(--wp-border);
+}
+.wp-map .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+.wp-pin-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--wp-primary);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.wp-pin-dot.is-active {
+  background: var(--wp-navy);
+}
+.pharma-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  width: 100%;
+  background: var(--wp-card);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--wp-radius);
+  padding: 14px;
+  cursor: pointer;
+}
+.pharma-card:hover {
+  border-color: var(--wp-primary);
+}
+.pharma-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pharma-meta {
+  font-size: 14px;
+}
+.status-open {
+  color: #2bad70;
+  font-weight: 600;
+}
+.status-closed {
+  color: #c0392b;
+  font-weight: 600;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-border);
+  color: var(--wp-muted);
+}
+.hours {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hours li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--wp-border);
+  font-size: 14px;
+}
+.hours li:last-child {
+  border-bottom: 0;
+}
+
+/* ════════ Carte immersive (recherche) ════════ */
+.map-screen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #e9eff2;
+}
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  font-family: inherit;
+  background: #e9eff2;
+}
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(4px);
+  font-size: 10px !important;
+  border-radius: 8px 0 0 0;
+}
+
+/* Barre flottante (verre dépoli) */
+.map-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: calc(14px + env(safe-area-inset-top)) 14px 14px;
+}
+.glass-btn {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: 0 8px 24px rgba(29, 36, 63, 0.14);
+  color: var(--wp-navy);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.glass-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: 0 8px 24px rgba(29, 36, 63, 0.14);
+}
+.glass-field-icon {
+  opacity: 0.55;
+  font-size: 15px;
+}
+.glass-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--wp-navy);
+  outline: none;
+}
+
+/* FAB localisation */
+.fab-locate {
+  position: absolute;
+  right: 16px;
+  bottom: calc(184px + 20px);
+  z-index: 1000;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wp-primary);
+  color: #fff;
+  font-size: 21px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px rgba(0, 157, 197, 0.5);
+  transition: transform 0.15s ease;
+}
+.fab-locate:active {
+  transform: scale(0.9);
+}
+.fab-locate.is-busy {
+  opacity: 0.7;
+}
+
+/* Bottom-sheet */
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -14px 44px rgba(29, 36, 63, 0.18);
+  touch-action: none;
+}
+.sheet-handle {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 100%;
+  max-width: 140px;
+  height: 30px;
+  border: 0;
+  background: none;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sheet-handle span {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: #d2dde2;
+}
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px calc(28px + env(safe-area-inset-bottom));
+}
+.sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 2px 12px;
+}
+.sheet-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.sheet-note {
+  margin: 0 0 10px;
+}
+.sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Carte pharmacie sélectionnée + bouton */
+.pharma-card.is-selected {
+  border-color: var(--wp-primary);
+  box-shadow:
+    0 0 0 2px rgba(0, 157, 197, 0.28),
+    0 12px 26px rgba(0, 157, 197, 0.18);
+}
+.pharma-open {
+  margin-top: 8px;
+  height: 40px;
+}
+.badge-ref {
+  background: rgba(242, 179, 55, 0.18);
+  color: #b07d12;
+}
+
+/* ════════ Marqueurs ════════ */
+.wp-marker-wrap,
+.wp-cluster-wrap,
+.wp-userloc-wrap {
+  background: none;
+  border: 0;
+}
+.wp-marker {
+  position: relative;
+  width: 34px;
+  height: 42px;
+  color: var(--wp-primary);
+  transform-origin: 50% 100%;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 6px 7px rgba(29, 36, 63, 0.3));
+  animation: wp-pin-drop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.wp-marker svg {
+  display: block;
+}
+.wp-marker.is-active {
+  transform: scale(1.32);
+  z-index: 1200;
+}
+.wp-marker-ring {
+  position: absolute;
+  left: 17px;
+  top: 16px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.wp-marker.is-ref .wp-marker-ring {
+  box-shadow: 0 0 0 3px rgba(242, 179, 55, 0.95);
+  animation: wp-ring-pulse 1.9s ease-out infinite;
+}
+@keyframes wp-pin-drop {
+  0% {
+    transform: translateY(-12px) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes wp-ring-pulse {
+  0% {
+    box-shadow: 0 0 0 2px rgba(242, 179, 55, 0.9);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(242, 179, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(242, 179, 55, 0);
+  }
+}
+
+/* Clusters */
+.wp-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  background: radial-gradient(circle at 32% 28%, #2ec3e3, var(--wp-primary));
+  box-shadow: 0 8px 20px rgba(0, 157, 197, 0.45);
+  animation: wp-cluster-in 0.3s ease both;
+}
+.wp-cluster span {
+  font-size: 14px;
+}
+.wp-cluster-sm {
+  width: 40px;
+  height: 40px;
+}
+.wp-cluster-md {
+  width: 48px;
+  height: 48px;
+}
+.wp-cluster-lg {
+  width: 58px;
+  height: 58px;
+  font-size: 16px;
+}
+@keyframes wp-cluster-in {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Point utilisateur */
+.wp-userdot {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+.wp-userdot-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #1d6fff;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.wp-userdot-pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: rgba(29, 111, 255, 0.4);
+  animation: wp-user-pulse 2s ease-out infinite;
+}
+@keyframes wp-user-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wp-marker,
+  .wp-cluster,
+  .wp-userdot-pulse,
+  .wp-marker.is-ref .wp-marker-ring {
+    animation: none !important;
+  }
+}
+
+/* ─── Phase 2 — conseil & rendez-vous ─── */
+.textarea {
+  height: auto;
+  min-height: 110px;
+  padding: 10px 12px;
+  line-height: 1.45;
+  resize: vertical;
+  font-family: inherit;
+}
+.secure-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.btn-sm {
+  height: 38px;
+  font-size: 14px;
+}
+
+/* Liste « Mes demandes / Mes rendez-vous » */
+.record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.record-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--wp-border);
+  border-radius: 10px;
+  background: var(--wp-bg);
+}
+.record-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Chips sélectionnables (choix d'acte) */
+.chip-action {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: #fff;
+  color: var(--wp-navy);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.chip-action:hover {
+  border-color: var(--wp-primary);
+}
+.chip-action.is-active {
+  background: var(--wp-primary);
+  border-color: var(--wp-primary);
+  color: #fff;
+}
+.chip-action:focus-visible {
+  outline: 2px solid var(--wp-primary);
+  outline-offset: 2px;
+}
+
+/* Grille de créneaux */
+.slot-day {
+  margin: 4px 0 8px;
+  font-size: 15px;
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 8px;
+}
+.slot-btn {
+  height: 42px;
+  border: 1px solid var(--wp-primary);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--wp-primary-600);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.slot-btn:hover:not(:disabled) {
+  background: var(--wp-primary);
+  color: #fff;
+}
+.slot-btn:focus-visible {
+  outline: 2px solid var(--wp-primary);
+  outline-offset: 2px;
+}
+.slot-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

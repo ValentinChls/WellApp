@@ -1,0 +1,62 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.next/
+out/
+.expo/
+.expo-shared/
+web-build/
+
+# prisma generated clients (régénérés via `pnpm db:generate`)
+packages/db/src/generated/
+
+# turbo
+.turbo/
+
+# env — JAMAIS de secret committé
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# fichiers de travail à la RACINE uniquement (assets sources, données, présentations)
+# — NON versionnés. Le `/` ancre à la racine : les assets des apps (apps/*/public)
+#   restent bien suivis.
+/*.pptx
+/*.xlsx
+/*.csv
+/*.pdf
+/*.ai
+/*.jpg
+/*.jpeg
+/*.png
+/*.PNG
+/*.txt
+/*.html
+/_*.js
+
+# dossiers de travail/extraction à la racine — NON versionnés
+/_pptx_extract/
+/_pptx_prosp/
+/_pptx_wa/
+/_xlsx/
+/Parcours-Wellpharma/
+/logo/
+/logo groupement concurrent/
+/.superpowers/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

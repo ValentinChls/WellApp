@@ -1,0 +1,164 @@
+// =====================================================================
+// DOMAINE SANTÉ — chiffré at-rest, journalisé, HDS-ready.
+//
+// Garde-fous NON NÉGOCIABLES :
+//  - Champs sensibles stockés en `Bytes` (ciphertext AES-256-GCM, cf. crypto.ts).
+//  - Tout accès/modif est journalisé dans `AuditLog` (qui / quoi / quand).
+//  - Liens vers Patient/User/Pharmacy = UUID OPAQUES (pas de FK inter-domaine)
+//    → permet le split physique vers un Postgres HDS sans refacto.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/health"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("HEALTH_DATABASE_URL")
+}
+
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  ANSWERED
+  CLOSED
+  CANCELLED
+}
+
+enum AppointmentType {
+  VACCINATION
+  PHARMACEUTICAL_INTERVIEW
+  ADVICE
+  OTHER
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum InterviewType {
+  ASTHME
+  AVK
+  AOD
+  ONCOLOGIE
+  AUTRE
+}
+
+enum InterviewStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AuditAction {
+  READ
+  CREATE
+  UPDATE
+  DELETE
+  EXPORT
+}
+
+// Demande de conseil
+model AdviceRequest {
+  id             String        @id @default(uuid())
+  patientId      String // UUID opaque -> engagement.Patient
+  pharmacyId     String // UUID opaque -> engagement.Pharmacy
+  subject        String // libellé NON sensible
+  bodyEncrypted  Bytes // contenu chiffré at-rest
+  attachmentPath String? // clé Storage de la pièce jointe chiffrée (jamais le fichier)
+  status         RequestStatus @default(OPEN)
+  assignedUserId String? // UUID opaque -> engagement.User (staff)
+  readAt         DateTime?
+  handledAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([pharmacyId, status])
+}
+
+// Entretien pharmaceutique (formulaire structuré)
+model PharmaceuticalInterview {
+  id                String          @id @default(uuid())
+  patientId         String
+  pharmacyId        String
+  conductedByUserId String?
+  type              InterviewType
+  templateCode      String? // code du modèle de formulaire (@wellpharma/shared)
+  status            InterviewStatus @default(DRAFT)
+  answersEncrypted  Bytes // formulaire structuré chiffré (JSON sérialisé puis chiffré)
+  startedAt         DateTime?
+  completedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([pharmacyId, status])
+}
+
+// Rendez-vous
+model Appointment {
+  id              String            @id @default(uuid())
+  patientId       String
+  pharmacyId      String
+  type            AppointmentType
+  slotId          String? // UUID opaque -> engagement.AppointmentSlot
+  appointmentTypeCode String? // code de l'acte (engagement.AppointmentType.code)
+  status          AppointmentStatus @default(REQUESTED)
+  scheduledAt     DateTime?
+  reasonEncrypted Bytes? // motif potentiellement sensible -> chiffré
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([pharmacyId, scheduledAt])
+}
+
+// Journal d'audit — NON NÉGOCIABLE #4
+model AuditLog {
+  id          String      @id @default(uuid())
+  actorUserId String // qui (UUID opaque)
+  actorRole   String // rôle au moment de l'accès
+  action      AuditAction // quoi
+  entityType  String // "AdviceRequest" | "PharmaceuticalInterview" | "Appointment"
+  entityId    String
+  patientId   String? // patient concerné
+  occurredAt  DateTime    @default(now()) // quand
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+
+  @@index([entityType, entityId])
+  @@index([patientId, occurredAt])
+  @@index([actorUserId, occurredAt])
+}
+
+// Réponses d'une mission patient (chiffrées at-rest) + validation pharmacien.
+// `assignmentId` = UUID opaque -> engagement.MissionAssignment (pas de FK inter-domaine).
+model MissionResponse {
+  id                      String    @id @default(uuid())
+  assignmentId            String    @unique
+  patientId               String
+  pharmacyId              String
+  missionCode             String
+  answersEncrypted        Bytes // JSON des réponses sérialisé puis chiffré
+  attentionPoints         String[]  @default([]) // libellés dérivés (surlignage pharmacien)
+  submittedAt             DateTime?
+  // Validation pharmacien
+  validationNoteEncrypted Bytes? // note libre du pharmacien (chiffrée)
+  signedOff               Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pharmacyId])
+  @@index([patientId])
+}

@@ -1,0 +1,502 @@
+// =====================================================================
+// DOMAINE ENGAGEMENT — infra standard (UE).
+// ⚠️ AUCUNE donnée de santé en clair ici. Les contenus santé vivent
+//    exclusivement dans le schéma `health` (chiffré, HDS-ready).
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/engagement"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("ENGAGEMENT_DATABASE_URL")
+}
+
+// ─────────────────────────────── Rôles & énumérations
+enum Role {
+  SUPER_ADMIN_GROUPEMENT
+  ADMIN_PHARMACIE
+  PATIENT
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  UNDISCLOSED
+}
+
+enum AffiliationType {
+  REFERENCE // pharmacie de référence du patient
+  CONSULTEE // pharmacie consultée hors zone
+}
+
+enum ConsentType {
+  HEALTH_DATA
+  MARKETING
+  PUSH_NOTIFICATIONS
+  DATA_SHARING_PHARMACY
+}
+
+enum ConsentSource {
+  APP_PATIENT
+  ADMIN_PHARMACIE
+  PAPER
+  IMPORT
+}
+
+enum CareEventCategory {
+  VACCINATION
+  DEPISTAGE
+  PREVENTION
+  SENSIBILISATION
+}
+
+enum TargetSex {
+  ALL
+  MALE
+  FEMALE
+}
+
+enum PushChannel {
+  EXPO_PUSH
+  WEB_PUSH
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  CANCELLED
+}
+
+enum ContestType {
+  QUIZ
+  CONTEST
+}
+
+// ─────────────────────────────── Multi-tenant : Groupement → Pharmacies
+model Groupement {
+  id         String     @id @default(uuid())
+  name       String
+  slug       String     @unique
+  pharmacies Pharmacy[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Pharmacy {
+  id           String  @id @default(uuid())
+  groupementId String
+  name         String
+  cip          String? @unique // code CIP officine
+  email        String?
+  phone        String?
+  addressLine  String?
+  postalCode   String?
+  city         String?
+  country      String  @default("FR")
+  latitude     Float? // recherche pharmacie
+  longitude    Float?
+  openingHours Json? // horaires structurés (type OpeningHours de @wellpharma/shared)
+  services     String[] @default([]) // codes ServiceCode (@wellpharma/shared)
+
+  groupement       Groupement        @relation(fields: [groupementId], references: [id], onDelete: Cascade)
+  staff            User[]
+  affiliations     Affiliation[]
+  promotions       Promotion[]
+  appointmentTypes AppointmentType[]
+  appointmentSlots AppointmentSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupementId])
+  @@index([postalCode])
+}
+
+// ─────────────────────────────── Identité & comptes
+model User {
+  id          String    @id @default(uuid())
+  authId      String    @unique // UID Supabase Auth
+  email       String    @unique
+  role        Role
+  fullName    String?
+  pharmacyId  String? // si staff officine
+  patientId   String?   @unique // si rôle patient
+  lastLoginAt DateTime?
+
+  pharmacy          Pharmacy?          @relation(fields: [pharmacyId], references: [id])
+  patient           Patient?           @relation(fields: [patientId], references: [id])
+  pushSubscriptions PushSubscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([pharmacyId])
+}
+
+model Patient {
+  id        String    @id @default(uuid())
+  // PII minimisée (RGPD)
+  firstName String?
+  lastName  String?
+  birthDate DateTime? @db.Date
+  sex       Sex?
+  phone     String?
+
+  user         User?
+  affiliations Affiliation[]
+  consents     Consent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Affiliation {
+  id         String          @id @default(uuid())
+  patientId  String
+  pharmacyId String
+  type       AffiliationType @default(REFERENCE)
+
+  patient  Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  pharmacy Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([patientId, pharmacyId])
+  @@index([pharmacyId])
+}
+
+// ─────────────────────────────── Consentement
+// Append-only : chaque changement = nouvelle ligne IMMUABLE et horodatée.
+// Le consentement "courant" = dernière ligne par (patientId, type).
+model Consent {
+  id            String        @id @default(uuid())
+  patientId     String
+  type          ConsentType
+  granted       Boolean
+  policyVersion String // version des CGU/politique acceptée
+  source        ConsentSource @default(APP_PATIENT)
+  ipAddress     String?
+  userAgent     String?
+  grantedAt     DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime      @default(now()) // horodatage immuable
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, type, createdAt])
+}
+
+// ─────────────────────────────── Contenu engagement
+// Calendrier vaccinal / marronnier (cf. "Marronnier - Campagnes de santé").
+model CareEvent {
+  id           String            @id @default(uuid())
+  slug         String            @unique
+  title        String
+  description  String?
+  category     CareEventCategory
+  month        Int? // 1-12
+  startDate    DateTime?
+  endDate      DateTime?
+  isNational   Boolean           @default(true)
+  // Ciblage (critères du marronnier)
+  targetAgeMin Int?
+  targetAgeMax Int?
+  targetSex    TargetSex         @default(ALL)
+  riskFactors  String[] // ex: ["âge", "diabète", "HTA", "surpoids"]
+  source       String? // ex: "Marronnier Wellpharma"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([month])
+  @@index([category])
+}
+
+model Promotion {
+  id          String    @id @default(uuid())
+  pharmacyId  String? // null = niveau groupement
+  title       String
+  description String?
+  imageUrl    String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean   @default(true)
+
+  pharmacy Pharmacy? @relation(fields: [pharmacyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contest {
+  id          String      @id @default(uuid())
+  type        ContestType @default(QUIZ)
+  title       String
+  description String?
+  config      Json? // questions/réponses — sans PII
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PushCampaign {
+  id           String         @id @default(uuid())
+  pharmacyId   String?
+  title        String
+  body         String
+  channels     PushChannel[]
+  status       CampaignStatus @default(DRAFT)
+  scheduledAt  DateTime?
+  sentAt       DateTime?
+  // Ciblage (mêmes critères que le marronnier) — sans PII
+  targetAgeMin Int?
+  targetAgeMax Int?
+  targetSex    TargetSex      @default(ALL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PreventionMessage {
+  id          String   @id @default(uuid())
+  careEventId String?
+  title       String
+  body        String
+  ctaLabel    String?
+  ctaUrl      String?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────── Analytics admin
+// Pseudonymisé : jamais d'identifiant patient direct (uniquement un hash).
+model KpiEvent {
+  id          String   @id @default(uuid())
+  name        String // ex: "appointment_requested"
+  pharmacyId  String?
+  subjectHash String? // référence patient pseudonymisée
+  properties  Json?
+  occurredAt  DateTime @default(now())
+
+  @@index([name, occurredAt])
+  @@index([pharmacyId])
+}
+
+// ─────────────────────────────── Notifications (socle Web Push)
+enum NotificationChannel {
+  PUSH
+  EMAIL
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+// Abonnement Web Push d'un appareil (pas une donnée de santé).
+model PushSubscription {
+  id         String    @id @default(uuid())
+  userId     String
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Journal d'envoi de notifications — métadonnées uniquement, JAMAIS de contenu.
+model NotificationLog {
+  id        String              @id @default(uuid())
+  userId    String?
+  kind      String // ex: "advice_request_created"
+  channel   NotificationChannel
+  status    NotificationStatus
+  createdAt DateTime            @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Rappel push activé par un patient sur un événement marronnier (CareEvent).
+model CareEventReminder {
+  id          String   @id @default(uuid())
+  userId      String
+  careEventId String
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, careEventId])
+  @@index([userId])
+}
+
+// Journal d'audit du chatbot non-santé. MÉTADONNÉES UNIQUEMENT — jamais le texte
+// libre du patient (minimisation RGPD + un détecteur best-effort ne peut garantir
+// l'absence de contenu santé dans le verbatim). `intent` = catégorie dérivée non
+// sensible (horaires/services/adresse/contact/autre), null si redirigé.
+// TODO RGPD : politique de rétention/purge planifiée (art. 5.1.e).
+model ChatLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  pharmacyId String?
+  redirected Boolean  @default(false)
+  intent     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ─────────────────────────────── Gamification & prévention (déclaratif, non sensible)
+// Profil de jeu d'un utilisateur. Points/badges dérivés de quiz de prévention
+// (connaissances générales — AUCUNE donnée de santé personnelle).
+model GamificationProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  points    Int      @default(0)
+  badges    String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tentative de quiz (meilleur score conservé par quiz et par utilisateur).
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  userId      String
+  quizId      String
+  score       Int // bonnes réponses
+  total       Int
+  points      Int
+  completedAt DateTime @default(now())
+
+  @@unique([userId, quizId])
+  @@index([userId])
+}
+
+// ─────────────────────────────── Rendez-vous : config (non sensible)
+// Les types d'actes et les créneaux sont de la CONFIG/disponibilité (engagement).
+// Le RDV réservé (patient ↔ acte ↔ créneau) vit dans le domaine SANTÉ (health.Appointment).
+enum SlotStatus {
+  FREE
+  BOOKED
+}
+
+model AppointmentType {
+  id          String   @id @default(uuid())
+  pharmacyId  String
+  code        String // ex: "VACCINATION", "ENTRETIEN", "TROD", "BPM"
+  label       String
+  durationMin Int      @default(20)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  pharmacy Pharmacy          @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  slots    AppointmentSlot[]
+
+  @@unique([pharmacyId, code])
+  @@index([pharmacyId])
+}
+
+model AppointmentSlot {
+  id                  String     @id @default(uuid())
+  pharmacyId          String
+  appointmentTypeId   String
+  startsAt            DateTime
+  status              SlotStatus @default(FREE)
+  // UUID opaque -> health.Appointment (pas de FK inter-domaine).
+  bookedAppointmentId String?
+  createdAt           DateTime   @default(now())
+
+  pharmacy        Pharmacy        @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  appointmentType AppointmentType @relation(fields: [appointmentTypeId], references: [id], onDelete: Cascade)
+
+  @@index([pharmacyId, startsAt])
+  @@index([appointmentTypeId, status])
+}
+
+// ─────────────────────────────── Moteur de missions (config + état, non sensible)
+// Le PARCOURS d'une mission (questions) est du contenu non sensible défini dans
+// @wellpharma/shared/missions.ts. Les RÉPONSES patient (santé) vivent dans le
+// domaine `health` (MissionResponse, chiffré). Refs patient/pharmacie = String
+// opaques (cf. philosophie KpiEvent), pas de FK inter-domaine.
+enum MissionState {
+  PROPOSEE
+  OUVERTE
+  EN_COURS
+  COMPLETEE
+  A_VALIDER
+  VALIDEE
+  FACTUREE
+  A_RENOUVELER
+  EXPIREE
+  REFUSEE
+  ANNULEE
+}
+
+// Activation d'un type de mission par le groupement (catalogue → réseau).
+model MissionActivation {
+  id           String   @id @default(uuid())
+  groupementId String
+  missionCode  String // code @wellpharma/shared (MissionTemplate.code)
+  active       Boolean  @default(true)
+  config       Json? // personnalisation (ciblage, relances, message)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([groupementId, missionCode])
+}
+
+// Affectation d'une mission à un patient (machine à états + métadonnées).
+model MissionAssignment {
+  id                String       @id @default(uuid())
+  missionCode       String
+  pharmacyId        String
+  patientId         String
+  state             MissionState @default(PROPOSEE)
+  channel           String? // SMS | PUSH | QR | TABLET
+  relanceCount      Int          @default(0)
+  proposedAt        DateTime     @default(now())
+  completedAt       DateTime?
+  validatedAt       DateTime?
+  validatedByUserId String? // UUID opaque -> User (staff)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([pharmacyId, state])
+  @@index([patientId])
+}
+
+// ─────────────────────────────── Carte de fidélité (engagement, non sensible)
+model LoyaltyAccount {
+  id           String               @id @default(uuid())
+  patientId    String               @unique // réf. Patient (même domaine)
+  cardNumber   String?              @unique // n° carte fidélité Wellpharma
+  points       Int                  @default(0)
+  tier         String? // Découverte | Fidèle | Privilège
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  transactions LoyaltyTransaction[]
+}
+
+model LoyaltyTransaction {
+  id        String         @id @default(uuid())
+  accountId String
+  account   LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  label     String
+  points    Int // gain (+) ou dépense (-)
+  createdAt DateTime       @default(now())
+
+  @@index([accountId])
+}

@@ -1,0 +1,48 @@
+{
+  "name": "wellpharma",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Écosystème Wellpharma — app patient (WPA) + SaaS d'administration. Monorepo Turborepo.",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:admin": "turbo run dev --filter=@wellpharma/admin",
+    "dev:patient": "turbo run dev --filter=@wellpharma/patient",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yml,yaml}\"",
+    "db:generate": "pnpm --filter @wellpharma/db db:generate",
+    "db:migrate": "pnpm --filter @wellpharma/db db:migrate",
+    "db:push": "pnpm --filter @wellpharma/db db:push",
+    "db:seed": "pnpm --filter @wellpharma/db db:seed",
+    "db:studio": "pnpm --filter @wellpharma/db db:studio",
+    "setup:back-office": "powershell -ExecutionPolicy Bypass -File ./setup-back-office.ps1",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "@swc/core",
+      "sharp",
+      "unrs-resolver",
+      "protobufjs",
+      "core-js"
+    ]
+  }
+}

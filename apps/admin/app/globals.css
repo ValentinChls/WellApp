@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Variables de thème shadcn/ui (format HSL sans la fonction hsl()).
+ * Les valeurs sont câblées sur la charte Wellpharma :
+ *   --primary = #009dc5 (bleu), --foreground = navy #1d243f (texte).
+ * Le preset Tailwind lit ces variables via hsl(var(--x)).
+ */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 228 37% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 228 37% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 37% 18%;
+
+    --primary: 192 100% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 60% 96%;
+    --secondary-foreground: 228 37% 18%;
+
+    --muted: 200 60% 96%;
+    --muted-foreground: 60 1% 36%;
+
+    --accent: 187 56% 50%;
+    --accent-foreground: 228 37% 18%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 20% 90%;
+    --input: 200 20% 90%;
+    --ring: 192 100% 39%;
+
+    --radius: 0.875rem;
+  }
+
+  /* Mode sombre : fond navy profond, primaire Wellpharma conservée. */
+  .dark {
+    --background: 228 33% 10%;
+    --foreground: 0 0% 98%;
+
+    --card: 228 30% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 228 30% 13%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 192 100% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 228 24% 18%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 228 24% 18%;
+    --muted-foreground: 215 16% 65%;
+
+    --accent: 187 56% 50%;
+    --accent-foreground: 228 37% 12%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 228 20% 22%;
+    --input: 228 20% 22%;
+    --ring: 192 100% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
