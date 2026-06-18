@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { HomeBanner } from '../data/homeService'
 
@@ -10,6 +10,37 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   const navigate = useNavigate()
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
+  const pausedUntil = useRef(0)
+  const pause = () => {
+    pausedUntil.current = Date.now() + 9000
+  }
+
+  // Défilement automatique : avance d'une bannière toutes les ~4,5 s, en boucle.
+  // Se met en pause ~9 s dès que l'utilisateur interagit, et respecte
+  // « prefers-reduced-motion ».
+  useEffect(() => {
+    if (banners.length <= 1) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const id = window.setInterval(() => {
+      if (Date.now() < pausedUntil.current) return
+      const el = trackRef.current
+      if (!el) return
+      const children = Array.from(el.children) as HTMLElement[]
+      if (children.length === 0) return
+      let cur = 0
+      let best = Infinity
+      children.forEach((c, i) => {
+        const d = Math.abs(c.offsetLeft - el.scrollLeft)
+        if (d < best) {
+          best = d
+          cur = i
+        }
+      })
+      const next = children[(cur + 1) % children.length]
+      if (next) el.scrollTo({ left: next.offsetLeft, behavior: 'smooth' })
+    }, 4500)
+    return () => window.clearInterval(id)
+  }, [banners.length])
 
   if (banners.length === 0) return null
 
@@ -35,6 +66,7 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   }
 
   function goTo(i: number) {
+    pause()
     const el = trackRef.current
     const child = el?.children[i] as HTMLElement | undefined
     if (el && child) el.scrollTo({ left: child.offsetLeft, behavior: 'smooth' })
@@ -48,7 +80,13 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
 
   return (
     <div className="home-carousel">
-      <div className="home-carousel-track" ref={trackRef} onScroll={onScroll}>
+      <div
+        className="home-carousel-track"
+        ref={trackRef}
+        onScroll={onScroll}
+        onPointerDown={pause}
+        onTouchStart={pause}
+      >
         {banners.map((b) => (
           <button
             key={b.id}
