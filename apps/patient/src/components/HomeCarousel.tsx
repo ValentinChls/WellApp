@@ -15,35 +15,48 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   // scrollLeft (fragile pendant une animation), on incrémente cet index.
   const activeRef = useRef(0)
   const pausedUntil = useRef(0)
+  // Fenêtre pendant laquelle un scroll est piloté par le code : onScroll ne doit
+  // pas contrarier la pastille (sinon elle suit les positions intermédiaires de
+  // l'animation au lieu de la tuile cible).
+  const programmaticUntil = useRef(0)
   const pause = () => {
     pausedUntil.current = Date.now() + 9000
   }
 
-  // Scroll fiable vers une tuile. Deux pièges contournés :
+  // Scroll fiable vers une tuile. Trois pièges contournés :
   //  1) cible EXACTE clampée au scroll max plutôt qu'offsetLeft brut — la
   //     dernière tuile (86% de large) ne peut pas s'aligner à gauche, sa cible
   //     est donc le scroll max (alignée à droite).
-  //  2) `scroll-snap-type: mandatory` interrompt l'animation `smooth` et
-  //     re-snappe à l'origine (bug Chrome) → le carrousel restait bloqué sur la
-  //     1re tuile. On coupe le snap pendant le scroll, on le restaure après.
-  //     Filet de sécurité : si `smooth` n'a pas animé (webview sans support),
-  //     on force la position pour garantir le défilement.
+  //  2) `scroll-snap-type: mandatory` interrompt l'animation `smooth` → on coupe
+  //     le snap pendant le scroll.
+  //  3) on ne RÉACTIVE le snap qu'une fois ARRIVÉ à la cible. Réactivé à
+  //     mi-course (minuterie aveugle), le snap mandatory re-snappe vers le point
+  //     le plus proche — souvent EN ARRIÈRE — ce qui empêchait la tuile du
+  //     milieu de s'accrocher. Filet : si `smooth` n'anime pas (webview), on
+  //     force la position au bout de 1,2 s.
   const scrollToIndex = (i: number) => {
     const el = trackRef.current
     const child = el?.children[i] as HTMLElement | undefined
     if (!el || !child) return
     const maxScroll = el.scrollWidth - el.clientWidth
-    const start = el.scrollLeft
     const delta = child.getBoundingClientRect().left - el.getBoundingClientRect().left
-    const target = Math.min(Math.max(start + delta, 0), maxScroll)
+    const target = Math.min(Math.max(el.scrollLeft + delta, 0), maxScroll)
+    programmaticUntil.current = Date.now() + 1600
     el.style.scrollSnapType = 'none'
     el.scrollTo({ left: target, behavior: 'smooth' })
-    window.setTimeout(() => {
-      if (Math.abs(el.scrollLeft - start) < 4 && Math.abs(el.scrollLeft - target) > 4) {
-        el.scrollTo({ left: target, behavior: 'auto' })
+    const startTs = Date.now()
+    const settle = () => {
+      if (trackRef.current !== el) return
+      const arrived = Math.abs(el.scrollLeft - target) < 4
+      const timedOut = Date.now() - startTs > 1200
+      if (arrived || timedOut) {
+        if (!arrived) el.scrollTo({ left: target, behavior: 'auto' })
+        el.style.scrollSnapType = '' // restaure le snap CSS, pile sur la cible
+        return
       }
-      el.style.scrollSnapType = '' // restaure le snap CSS (x mandatory)
-    }, 600)
+      window.setTimeout(settle, 50)
+    }
+    window.setTimeout(settle, 50)
   }
 
   // Défilement automatique : avance d'un index toutes les ~4,5 s, en boucle.
@@ -67,6 +80,9 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   // plus proche du défilement courant (robuste pour la dernière tuile, qui ne
   // peut jamais être centrée).
   function onScroll() {
+    // Pendant un scroll piloté par le code, la pastille suit l'index cible (déjà
+    // posé par l'auto-play / goTo) — on ignore les positions intermédiaires.
+    if (Date.now() < programmaticUntil.current) return
     const el = trackRef.current
     if (!el) return
     const children = Array.from(el.children) as HTMLElement[]
