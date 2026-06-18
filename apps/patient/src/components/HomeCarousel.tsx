@@ -10,83 +10,21 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   const navigate = useNavigate()
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
-  // Position courante pour l'auto-play — source de vérité déterministe, mise à
-  // jour aussi par le défilement manuel (onScroll). On n'avance PAS en relisant
-  // scrollLeft (fragile pendant une animation), on incrémente cet index.
+  // Index de la tuile courante = source de vérité = position RÉELLE du scroll
+  // (lue directement, pas via l'événement `scroll` qui ne part pas toujours sur
+  // un défilement programmé). Tenu à jour par syncActive().
   const activeRef = useRef(0)
   const pausedUntil = useRef(0)
-  // Fenêtre pendant laquelle un scroll est piloté par le code : onScroll ne doit
-  // pas contrarier la pastille (sinon elle suit les positions intermédiaires de
-  // l'animation au lieu de la tuile cible).
-  const programmaticUntil = useRef(0)
   const pause = () => {
     pausedUntil.current = Date.now() + 9000
   }
 
-  // Scroll fiable vers une tuile. Trois pièges contournés :
-  //  1) cible EXACTE clampée au scroll max plutôt qu'offsetLeft brut — la
-  //     dernière tuile (86% de large) ne peut pas s'aligner à gauche, sa cible
-  //     est donc le scroll max (alignée à droite).
-  //  2) `scroll-snap-type: mandatory` interrompt l'animation `smooth` → on coupe
-  //     le snap pendant le scroll.
-  //  3) on ne RÉACTIVE le snap qu'une fois ARRIVÉ à la cible. Réactivé à
-  //     mi-course (minuterie aveugle), le snap mandatory re-snappe vers le point
-  //     le plus proche — souvent EN ARRIÈRE — ce qui empêchait la tuile du
-  //     milieu de s'accrocher. Filet : si `smooth` n'anime pas (webview), on
-  //     force la position au bout de 1,2 s.
-  const scrollToIndex = (i: number) => {
+  // Index de la tuile dont le bord gauche est le plus proche du défilement
+  // courant (robuste pour la dernière tuile, end-aligned, jamais centrable).
+  const indexFromScroll = () => {
     const el = trackRef.current
-    const child = el?.children[i] as HTMLElement | undefined
-    if (!el || !child) return
-    const maxScroll = el.scrollWidth - el.clientWidth
-    const delta = child.getBoundingClientRect().left - el.getBoundingClientRect().left
-    const target = Math.min(Math.max(el.scrollLeft + delta, 0), maxScroll)
-    programmaticUntil.current = Date.now() + 1600
-    el.style.scrollSnapType = 'none'
-    el.scrollTo({ left: target, behavior: 'smooth' })
-    const startTs = Date.now()
-    const settle = () => {
-      if (trackRef.current !== el) return
-      const arrived = Math.abs(el.scrollLeft - target) < 4
-      const timedOut = Date.now() - startTs > 1200
-      if (arrived || timedOut) {
-        if (!arrived) el.scrollTo({ left: target, behavior: 'auto' })
-        el.style.scrollSnapType = '' // restaure le snap CSS, pile sur la cible
-        return
-      }
-      window.setTimeout(settle, 50)
-    }
-    window.setTimeout(settle, 50)
-  }
-
-  // Défilement automatique : avance d'un index toutes les ~4,5 s, en boucle.
-  // Pause ~9 s dès que l'utilisateur interagit, respecte « prefers-reduced-motion ».
-  useEffect(() => {
-    if (banners.length <= 1) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const id = window.setInterval(() => {
-      if (Date.now() < pausedUntil.current) return
-      const next = (activeRef.current + 1) % banners.length
-      activeRef.current = next
-      setActive(next)
-      scrollToIndex(next)
-    }, 4500)
-    return () => window.clearInterval(id)
-  }, [banners.length])
-
-  if (banners.length === 0) return null
-
-  // Pastille active sur défilement manuel = tuile dont le bord gauche est le
-  // plus proche du défilement courant (robuste pour la dernière tuile, qui ne
-  // peut jamais être centrée).
-  function onScroll() {
-    // Pendant un scroll piloté par le code, la pastille suit l'index cible (déjà
-    // posé par l'auto-play / goTo) — on ignore les positions intermédiaires.
-    if (Date.now() < programmaticUntil.current) return
-    const el = trackRef.current
-    if (!el) return
+    if (!el) return 0
     const children = Array.from(el.children) as HTMLElement[]
-    if (children.length === 0) return
     let best = 0
     let bestDist = Infinity
     children.forEach((c, i) => {
@@ -96,14 +34,81 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
         best = i
       }
     })
-    activeRef.current = best
-    setActive(best)
+    return best
   }
+
+  // Aligne la pastille sur la position réelle de la diapo. Appelé en continu
+  // (onScroll + boucle d'animation + montage) → la pastille SUIT toujours la
+  // diapo, jamais en avance ni en retard.
+  const syncActive = () => {
+    const i = indexFromScroll()
+    activeRef.current = i
+    setActive(i)
+  }
+
+  // Scroll fiable vers une tuile. Pièges contournés :
+  //  1) cible EXACTE clampée au scroll max plutôt qu'offsetLeft brut — la
+  //     dernière tuile (86% de large) ne peut pas s'aligner à gauche, sa cible
+  //     est donc le scroll max (alignée à droite).
+  //  2) `scroll-snap-type: mandatory` interrompt l'animation `smooth` → on coupe
+  //     le snap pendant le scroll, et on ne le RÉACTIVE qu'une fois ARRIVÉ à la
+  //     cible (réactivé à mi-course, il re-snappe vers le point le plus proche —
+  //     souvent en arrière — ce qui bloquait la tuile du milieu).
+  //  3) on synchronise la pastille à CHAQUE pas (la position réelle), donc elle
+  //     suit l'animation sans dépendre de l'événement `scroll`. Filet : si
+  //     `smooth` n'anime pas (webview), on force la position au bout de 1,2 s.
+  const scrollToIndex = (i: number) => {
+    const el = trackRef.current
+    const child = el?.children[i] as HTMLElement | undefined
+    if (!el || !child) return
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const delta = child.getBoundingClientRect().left - el.getBoundingClientRect().left
+    const target = Math.min(Math.max(el.scrollLeft + delta, 0), maxScroll)
+    el.style.scrollSnapType = 'none'
+    el.scrollTo({ left: target, behavior: 'smooth' })
+    const startTs = Date.now()
+    const settle = () => {
+      if (trackRef.current !== el) return
+      syncActive() // la pastille suit la position réelle pendant l'animation
+      const arrived = Math.abs(el.scrollLeft - target) < 4
+      const timedOut = Date.now() - startTs > 1200
+      if (arrived || timedOut) {
+        if (!arrived) el.scrollTo({ left: target, behavior: 'auto' })
+        el.style.scrollSnapType = '' // restaure le snap CSS, pile sur la cible
+        syncActive()
+        return
+      }
+      window.setTimeout(settle, 50)
+    }
+    window.setTimeout(settle, 50)
+  }
+
+  // Aligne la pastille sur la position de départ (la diapo n'est pas forcément
+  // à 0 : restauration de scroll, end-align…) — sinon pastille ≠ tuile affichée.
+  useEffect(() => {
+    const raf = requestAnimationFrame(syncActive)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [banners.length])
+
+  // Défilement automatique : avance d'un index toutes les ~4,5 s, en boucle.
+  // Pause ~9 s dès que l'utilisateur interagit, respecte « prefers-reduced-motion ».
+  useEffect(() => {
+    if (banners.length <= 1) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const id = window.setInterval(() => {
+      if (Date.now() < pausedUntil.current) return
+      const next = (activeRef.current + 1) % banners.length
+      scrollToIndex(next)
+    }, 4500)
+    return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [banners.length])
+
+  if (banners.length === 0) return null
 
   function goTo(i: number) {
     pause()
-    activeRef.current = i
-    setActive(i)
     scrollToIndex(i)
   }
 
@@ -118,7 +123,7 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
       <div
         className="home-carousel-track"
         ref={trackRef}
-        onScroll={onScroll}
+        onScroll={syncActive}
         onPointerDown={pause}
         onTouchStart={pause}
       >
