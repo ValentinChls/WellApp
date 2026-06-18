@@ -9,6 +9,14 @@ declare const self: ServiceWorkerGlobalScope & {
 // fonctionnement hors-ligne + installabilité.
 precacheAndRoute(self.__WB_MANIFEST)
 
+// Activation IMMÉDIATE du nouveau SW (API brute, sans dépendance) — sinon il
+// attend la fermeture de tous les onglets → l'utilisateur reste une version en
+// retard à chaque déploiement.
+self.skipWaiting()
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim())
+})
+
 // Web Push : afficher la notification. JAMAIS de donnée santé en clair ici —
 // les notifications sont des alertes + lien sécurisé authentifié.
 self.addEventListener('push', (event) => {
