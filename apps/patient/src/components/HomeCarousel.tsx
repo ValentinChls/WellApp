@@ -10,49 +10,67 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   const navigate = useNavigate()
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
+  // Position courante pour l'auto-play — source de vérité déterministe, mise à
+  // jour aussi par le défilement manuel (onScroll). On n'avance PAS en relisant
+  // scrollLeft (fragile pendant une animation), on incrémente cet index.
+  const activeRef = useRef(0)
   const pausedUntil = useRef(0)
   const pause = () => {
     pausedUntil.current = Date.now() + 9000
   }
 
-  // Défilement automatique : avance d'une bannière toutes les ~4,5 s, en boucle.
-  // Se met en pause ~9 s dès que l'utilisateur interagit, et respecte
-  // « prefers-reduced-motion ».
+  // Scroll fiable vers une tuile. Deux pièges contournés :
+  //  1) cible EXACTE clampée au scroll max plutôt qu'offsetLeft brut — la
+  //     dernière tuile (86% de large) ne peut pas s'aligner à gauche, sa cible
+  //     est donc le scroll max (alignée à droite).
+  //  2) `scroll-snap-type: mandatory` interrompt l'animation `smooth` et
+  //     re-snappe à l'origine (bug Chrome) → le carrousel restait bloqué sur la
+  //     1re tuile. On coupe le snap pendant le scroll, on le restaure après.
+  //     Filet de sécurité : si `smooth` n'a pas animé (webview sans support),
+  //     on force la position pour garantir le défilement.
+  const scrollToIndex = (i: number) => {
+    const el = trackRef.current
+    const child = el?.children[i] as HTMLElement | undefined
+    if (!el || !child) return
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const start = el.scrollLeft
+    const delta = child.getBoundingClientRect().left - el.getBoundingClientRect().left
+    const target = Math.min(Math.max(start + delta, 0), maxScroll)
+    el.style.scrollSnapType = 'none'
+    el.scrollTo({ left: target, behavior: 'smooth' })
+    window.setTimeout(() => {
+      if (Math.abs(el.scrollLeft - start) < 4 && Math.abs(el.scrollLeft - target) > 4) {
+        el.scrollTo({ left: target, behavior: 'auto' })
+      }
+      el.style.scrollSnapType = '' // restaure le snap CSS (x mandatory)
+    }, 600)
+  }
+
+  // Défilement automatique : avance d'un index toutes les ~4,5 s, en boucle.
+  // Pause ~9 s dès que l'utilisateur interagit, respecte « prefers-reduced-motion ».
   useEffect(() => {
     if (banners.length <= 1) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const id = window.setInterval(() => {
       if (Date.now() < pausedUntil.current) return
-      const el = trackRef.current
-      if (!el) return
-      const children = Array.from(el.children) as HTMLElement[]
-      if (children.length === 0) return
-      let cur = 0
-      let best = Infinity
-      children.forEach((c, i) => {
-        const d = Math.abs(c.offsetLeft - el.scrollLeft)
-        if (d < best) {
-          best = d
-          cur = i
-        }
-      })
-      const next = children[(cur + 1) % children.length]
-      if (next) el.scrollTo({ left: next.offsetLeft, behavior: 'smooth' })
+      const next = (activeRef.current + 1) % banners.length
+      activeRef.current = next
+      setActive(next)
+      scrollToIndex(next)
     }, 4500)
     return () => window.clearInterval(id)
   }, [banners.length])
 
   if (banners.length === 0) return null
 
+  // Pastille active sur défilement manuel = tuile dont le bord gauche est le
+  // plus proche du défilement courant (robuste pour la dernière tuile, qui ne
+  // peut jamais être centrée).
   function onScroll() {
     const el = trackRef.current
     if (!el) return
     const children = Array.from(el.children) as HTMLElement[]
     if (children.length === 0) return
-    // Tuile active = celle dont le bord gauche est le plus proche du défilement
-    // (scroll-snap-align: start). Robuste pour la DERNIÈRE tuile, qui ne peut
-    // jamais être centrée — la détection par « centre » la ratait (le point
-    // actif restait bloqué sur l'avant-dernière).
     let best = 0
     let bestDist = Infinity
     children.forEach((c, i) => {
@@ -62,14 +80,15 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
         best = i
       }
     })
+    activeRef.current = best
     setActive(best)
   }
 
   function goTo(i: number) {
     pause()
-    const el = trackRef.current
-    const child = el?.children[i] as HTMLElement | undefined
-    if (el && child) el.scrollTo({ left: child.offsetLeft, behavior: 'smooth' })
+    activeRef.current = i
+    setActive(i)
+    scrollToIndex(i)
   }
 
   function open(b: HomeBanner) {
