@@ -16,10 +16,28 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
   function onScroll() {
     const el = trackRef.current
     if (!el) return
-    const center = el.scrollLeft + el.clientWidth / 2
     const children = Array.from(el.children) as HTMLElement[]
-    const i = children.findIndex((c) => c.offsetLeft <= center && c.offsetLeft + c.offsetWidth > center)
-    if (i >= 0) setActive(i)
+    if (children.length === 0) return
+    // Tuile active = celle dont le bord gauche est le plus proche du défilement
+    // (scroll-snap-align: start). Robuste pour la DERNIÈRE tuile, qui ne peut
+    // jamais être centrée — la détection par « centre » la ratait (le point
+    // actif restait bloqué sur l'avant-dernière).
+    let best = 0
+    let bestDist = Infinity
+    children.forEach((c, i) => {
+      const dist = Math.abs(c.offsetLeft - el.scrollLeft)
+      if (dist < bestDist) {
+        bestDist = dist
+        best = i
+      }
+    })
+    setActive(best)
+  }
+
+  function goTo(i: number) {
+    const el = trackRef.current
+    const child = el?.children[i] as HTMLElement | undefined
+    if (el && child) el.scrollTo({ left: child.offsetLeft, behavior: 'smooth' })
   }
 
   function open(b: HomeBanner) {
@@ -50,9 +68,16 @@ export function HomeCarousel({ banners }: { banners: HomeBanner[] }) {
         ))}
       </div>
       {banners.length > 1 ? (
-        <div className="home-dots" aria-hidden="true">
+        <div className="home-dots">
           {banners.map((b, i) => (
-            <span key={b.id} className={`home-dot${i === active ? ' on' : ''}`} />
+            <button
+              key={b.id}
+              type="button"
+              aria-label={`Aller à la bannière ${i + 1}`}
+              aria-current={i === active ? 'true' : undefined}
+              className={`home-dot${i === active ? ' on' : ''}`}
+              onClick={() => goTo(i)}
+            />
           ))}
         </div>
       ) : null}
