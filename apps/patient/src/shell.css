@@ -1199,6 +1199,12 @@
   text-align: left;
   box-shadow: 0 8px 22px rgba(20, 30, 60, 0.12);
 }
+/* La dernière tuile (86% de large) ne peut pas s'aligner à gauche (sa position
+   dépasse le scroll max) → on l'aligne à DROITE pour qu'elle soit atteignable
+   par le snap, l'auto-play et les pastilles. */
+.home-tile:last-child {
+  scroll-snap-align: end;
+}
 .home-tile-img {
   position: absolute;
   inset: 0;
